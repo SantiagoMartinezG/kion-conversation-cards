@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KION Conversation Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --kion-red: #6E0F4B;
+    --kion-berry: #DC0064;
+    --kion-black: #383633;
+    --bg: #14110f;
+    --bg-soft: #211d1b;
+    --ink: #f3ece9;
+    --muted: #9a8f8a;
+    --line: #3a3531;
+    --neon: #00ffa3;
+    --neon-dim: #00b873;
+    --accent: #DC0064;
+    --accent-dim: #6E0F4B;
+    --tech: #00ffa3;
+    --project: #DC0064;
+    --personal: #b14e8c;
+    --display: 'Syne', sans-serif;
+    --mono: 'Space Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; background: var(--bg); color: var(--ink); font-family: var(--mono); overflow-x: hidden; }
+  body {
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(220,0,100,0.10), transparent 42%),
+      radial-gradient(circle at 85% 80%, rgba(110,15,75,0.16), transparent 48%),
+      radial-gradient(circle at 50% 50%, rgba(0,255,163,0.04), transparent 60%),
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 100% 100%, 44px 44px, 44px 44px;
+    background-position: 0 0, 0 0, 0 0, -1px -1px, -1px -1px;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .grain { position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .screen { width: 100%; max-width: 620px; }
+  .hidden { display: none !important; }
+
+  .brand { text-align: center; margin-bottom: 30px; animation: fadeUp 0.7s ease both; }
+  .brand .tag { font-size: 11px; letter-spacing: 0.4em; color: var(--neon); text-transform: uppercase; }
+  .brand h1 { font-family: var(--display); font-weight: 800; font-size: clamp(34px, 7vw, 56px); line-height: 0.95; letter-spacing: -0.02em; margin: 10px 0 6px; }
+  .brand h1 span { color: var(--accent); }
+  .brand p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+  /* ----- Setup form ----- */
+  .setup-card { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 18px; padding: 26px; animation: fadeUp 0.5s ease both; }
+  .field-label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+  .team-input { width: 100%; background: var(--bg); border: 1px solid var(--line); color: var(--ink); font-family: var(--display); font-weight: 700; font-size: 20px; padding: 14px 16px; border-radius: 12px; outline: none; transition: border-color 0.2s; margin-bottom: 22px; }
+  .team-input:focus { border-color: var(--accent); }
+  .add-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .add-row input { flex: 1; background: var(--bg); border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 15px; padding: 14px 16px; border-radius: 12px; outline: none; transition: border-color 0.2s; }
+  .add-row input:focus { border-color: var(--neon-dim); }
+  .add-row button { background: var(--neon); color: #052; border: none; font-family: var(--display); font-weight: 700; font-size: 22px; width: 54px; border-radius: 12px; cursor: pointer; transition: transform 0.15s; }
+  .add-row button:active { transform: scale(0.92); }
+  .members-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; min-height: 30px; }
+  .member-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 12px 16px; animation: fadeUp 0.3s ease both; }
+  .member-item .mname { display:flex; align-items:center; gap: 12px; font-size: 15px; }
+  .member-item .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); flex-shrink:0; }
+  .member-item .del { background:none; border:none; color: var(--muted); cursor:pointer; font-size: 18px; line-height:1; padding: 4px 8px; border-radius:6px; transition: 0.2s; }
+  .member-item .del:hover { color: var(--accent); background: rgba(220,0,100,0.10); }
+  .members-empty { color: var(--muted); font-size: 12px; text-align:center; padding: 14px; border: 1px dashed var(--line); border-radius: 12px; }
+
+  .btn { font-family: var(--display); font-weight: 700; font-size: 15px; border: none; padding: 16px 28px; border-radius: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+  .btn-primary { background: var(--neon); color: #052; box-shadow: 0 10px 30px -10px rgba(0,255,163,0.6); width: 100%; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 38px -12px rgba(0,255,163,0.7); }
+  .btn-primary:disabled { background: var(--line); color: var(--muted); box-shadow: none; cursor: default; transform: none; }
+
+  .org-access { text-align: center; margin-top: 22px; }
+  .org-link { background: none; border: 1px solid var(--line); color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; padding: 10px 18px; border-radius: 999px; cursor: pointer; transition: 0.2s; }
+  .org-link:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+  /* ----- Card stage ----- */
+  .stage-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; animation: fadeUp 0.5s ease both; gap: 12px; }
+  .back-btn { background: none; border: 1px solid var(--line); color: var(--muted); font-family: var(--mono); font-size: 12px; padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+  .back-btn:hover { color: var(--ink); border-color: var(--muted); }
+  .stage-title { font-family: var(--display); font-weight: 700; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stage-title b { color: var(--accent); }
+  .counter { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  .filters { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; justify-content: center; }
+  .chip { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; transition: 0.2s; }
+  .chip[data-c="tech"].on { background: var(--tech); color: #062; border-color: var(--tech); }
+  .chip[data-c="project"].on { background: var(--project); color: #fff; border-color: var(--project); }
+  .chip[data-c="personal"].on { background: var(--personal); color: #fff; border-color: var(--personal); }
+  .chip[data-c="all"].on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  .deck { position: relative; width: 100%; max-width: 460px; height: 330px; margin: 0 auto 14px; }
+  .card { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 20px; border: 1px solid var(--line); background: var(--bg-soft); box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5); padding: 28px 30px; display: flex; flex-direction: column; justify-content: space-between; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; will-change: transform; }
+  .card.tech { border-color: var(--tech); box-shadow: 0 20px 50px -15px rgba(0,255,163,0.25); }
+  .card.project { border-color: var(--project); box-shadow: 0 20px 50px -15px rgba(220,0,100,0.30); }
+  .card.personal { border-color: var(--personal); box-shadow: 0 20px 50px -15px rgba(177,78,140,0.30); }
+  .card.empty { align-items: center; justify-content: center; text-align: center; cursor: default; border-color: var(--line); box-shadow: 0 20px 50px -15px rgba(0,0,0,0.5); }
+  .card.empty .empty-txt { color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .card.empty .empty-txt b { color: var(--neon); display:block; font-family: var(--display); font-size: 18px; margin-bottom: 6px; }
+  .card.swipe-anim { transition: transform 0.4s cubic-bezier(.4,.0,.2,1), opacity 0.4s; }
+  .card.enter { animation: cardEnter 0.5s cubic-bezier(.2,.9,.3,1.1) both; }
+
+  .who { display: flex; align-items: center; gap: 10px; }
+  .who .who-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+  .who .who-name { font-family: var(--display); font-weight: 800; font-size: clamp(20px, 4.5vw, 28px); color: var(--neon); line-height: 1; animation: namedrop 0.5s cubic-bezier(.2,.9,.3,1.2) both; }
+  .card.project .who .who-name { color: var(--project); }
+  .card.personal .who .who-name { color: var(--personal); }
+  .who-divider { height: 1px; background: var(--line); margin: 4px 0 0; }
+  .cat-tag { align-self: flex-start; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; padding: 5px 11px; border-radius: 999px; background: var(--neon); color: #052; font-weight: 700; }
+  .card.tech .cat-tag { background: var(--tech); color: #052; }
+  .card.project .cat-tag { background: var(--project); color: #fff; }
+  .card.personal .cat-tag { background: var(--personal); color: #fff; }
+  .q { font-family: var(--display); font-weight: 700; font-size: clamp(18px, 3.4vw, 25px); line-height: 1.25; margin: auto 0; }
+  .card-foot { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); letter-spacing: 0.1em; }
+  .swipe-hint { text-align: center; font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 22px; }
+  .swipe-hint span { color: var(--neon-dim); }
+  .deal-row { display: flex; justify-content: center; }
+  .deal-btn { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; background: var(--neon); color: #052; border: none; padding: 16px 40px; border-radius: 12px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 10px 30px -10px rgba(0,255,163,0.6); }
+  .deal-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 38px -12px rgba(0,255,163,0.7); }
+  .deal-btn:active { transform: translateY(0); }
+  .deal-btn:disabled { background: var(--line); color: var(--muted); box-shadow:none; cursor:default; }
+  .reset-row { text-align:center; margin-top:14px; }
+  .reset-link { color: var(--muted); font-size: 11px; cursor: pointer; text-decoration: underline; }
+  .reset-link:hover { color: var(--neon); }
+
+  /* ----- Organizer panel ----- */
+  .org-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .otab { flex: 1; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; padding: 12px 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg-soft); color: var(--muted); cursor: pointer; transition: 0.2s; }
+  .otab.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .org-hint { color: var(--muted); font-size: 12px; line-height: 1.5; margin-bottom: 16px; text-align: center; }
+
+  .team-add { display: flex; gap: 8px; margin-bottom: 20px; }
+  .team-add input { flex: 1; background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 14px; padding: 12px 14px; border-radius: 10px; outline: none; }
+  .team-add input:focus { border-color: var(--neon-dim); }
+  .team-add button { background: var(--neon); color: #052; border: none; font-family: var(--display); font-weight: 700; font-size: 14px; padding: 0 18px; border-radius: 10px; cursor: pointer; }
+  .team-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .tpill { font-family: var(--mono); font-size: 13px; font-weight: 700; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); color: var(--ink); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+  .tpill.on { background: var(--neon); color: #052; border-color: var(--neon); }
+  .tpill .pc { font-size: 10px; color: var(--muted); }
+  .tpill.on .pc { color: #052; }
+  .tpill .delx { font-size: 14px; opacity: 0.6; }
+  .org-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 30px 10px; }
+
+  .score-add { display: flex; gap: 8px; margin-bottom: 14px; }
+  .score-add input { flex: 1; background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 14px; padding: 12px 14px; border-radius: 10px; outline: none; }
+  .score-add input:focus { border-color: var(--neon-dim); }
+  .score-add button { background: var(--neon); color: #052; border: none; font-family: var(--display); font-weight: 700; font-size: 20px; width: 48px; border-radius: 10px; cursor: pointer; }
+  .ptable { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+  .ptable th { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 400; padding: 8px 6px; text-align: center; border-bottom: 1px solid var(--line); }
+  .ptable th:first-child { text-align: left; }
+  .ptable td { padding: 7px 6px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .ptable td.pname { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ptable input.g { width: 58px; background: var(--bg); border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 14px; padding: 8px 4px; border-radius: 8px; text-align: center; outline: none; -moz-appearance: textfield; }
+  .ptable input.g::-webkit-outer-spin-button, .ptable input.g::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .ptable input.g:focus { border-color: var(--neon-dim); }
+  .ptable td.ptot { text-align: center; font-weight: 700; color: var(--neon); }
+  .ptable td.pdel { text-align: center; }
+  .ptable .delp { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; }
+  .ptable .delp:hover { color: var(--accent); }
+  .line-avg { text-align: center; padding: 14px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; margin-top: 6px; }
+  .line-avg .lbl { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+  .line-avg .val { font-family: var(--display); font-weight: 800; font-size: 30px; color: var(--neon); }
+
+  .result-block { margin-bottom: 28px; }
+  .result-title { font-family: var(--display); font-weight: 700; font-size: 16px; margin-bottom: 14px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .result-title span { font-family: var(--mono); font-weight: 400; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .rank-list { list-style: none; counter-reset: rank; display: flex; flex-direction: column; gap: 8px; }
+  .rank-list li { counter-increment: rank; display: flex; align-items: center; gap: 14px; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .rank-list li::before { content: counter(rank); font-family: var(--display); font-weight: 800; font-size: 18px; color: var(--muted); min-width: 24px; }
+  .rank-list li .rname { flex: 1; font-size: 15px; font-weight: 700; }
+  .rank-list li .rsub { font-size: 11px; color: var(--muted); font-weight: 400; }
+  .rank-list li .rval { font-family: var(--display); font-weight: 800; font-size: 20px; color: var(--neon); }
+  .rank-list.podium li:nth-child(1) { border-color: var(--neon); box-shadow: 0 0 24px -10px var(--neon); }
+  .rank-list.podium li:nth-child(1)::before { color: var(--neon); }
+  .rank-list.podium li:nth-child(2) { border-color: var(--accent); }
+  .rank-list.podium li:nth-child(2)::before { color: var(--accent); }
+  .rank-list.podium li:nth-child(3) { border-color: var(--personal); }
+  .rank-list.podium li:nth-child(3)::before { color: var(--personal); }
+  .org-refresh { display: block; margin: 8px auto 0; }
+
+  .spirit-add { display: flex; gap: 8px; margin-bottom: 16px; }
+  .spirit-add select { flex: 1; background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink); font-family: var(--mono); font-size: 14px; padding: 12px 14px; border-radius: 10px; outline: none; }
+  .spirit-add button { background: var(--neon); color: #052; border: none; font-family: var(--display); font-weight: 700; font-size: 14px; padding: 0 18px; border-radius: 10px; cursor: pointer; }
+  .vote-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .vote-row { display: flex; align-items: center; justify-content: space-between; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .vote-row .vname { font-size: 14px; }
+  .vote-row .vcount { display: flex; align-items: center; gap: 10px; }
+  .vote-row .vnum { font-family: var(--display); font-weight: 800; font-size: 18px; color: var(--neon); min-width: 22px; text-align: center; }
+  .vote-row.leader { border-color: var(--neon); }
+  .vbtn { background: var(--bg); border: 1px solid var(--line); color: var(--ink); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 16px; line-height: 1; }
+  .vbtn:hover { border-color: var(--neon-dim); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes cardEnter { 0% { transform: translateY(40px) scale(.9); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes namedrop { 0% { transform: translateY(-8px); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  .foot-credit { margin-top: 26px; text-align: center; font-size: 10px; color: var(--muted); letter-spacing: 0.25em; text-transform: uppercase; }
+  .ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; flex-shrink: 0; }
+  .ic-title { width: 20px; height: 20px; vertical-align: -0.18em; margin-right: 4px; }
+  .result-title svg { color: var(--accent); }
+  .org-link svg { color: var(--accent); }
+  .vname svg { width: 14px; height: 14px; color: var(--neon); vertical-align: -0.1em; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ic-trophy" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6m12 5h1.5a2.5 2.5 0 0 0 0-5H18M6 4h12v5a6 6 0 0 1-12 0V4Zm3 14h6m-3-3v3m-2 3h4"/>
+    </symbol>
+    <symbol id="ic-medal" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M7.5 4 9 9m6-5-1.5 5M12 21a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0-4 1.2 1 .4-1.5L15 15h-1.5L12 13.5 10.5 15H9l.4 1.5.4 1.5L12 17Z"/>
+    </symbol>
+    <symbol id="ic-star" viewBox="0 0 24 24">
+      <path fill="currentColor"
+        d="m12 3 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.3 6.8 19l1-5.8-4.2-4.1 5.8-.8L12 3Z"/>
+    </symbol>
+    <symbol id="ic-cards" viewBox="0 0 24 24">
+      <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M3.5 8.5 9 6m-3 13 9-3.3a2 2 0 0 0 1.2-2.6L12.8 4.4a2 2 0 0 0-2.6-1.2L4 5.5a2 2 0 0 0-1.2 2.6l3.4 9.3A2 2 0 0 0 6.8 19Zm10-12 5 1.8a2 2 0 0 1 1.3 2.5l-2.6 9.4a2 2 0 0 1-2.5 1.4L13 21"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- SCREEN 1: setup (team + members) -->
+<div class="screen" id="setupScreen">
+  <div class="brand">
+    <div class="tag">KION &middot; Team Building</div>
+    <h1>Conversation<br><span>Cards</span></h1>
+    <p>Nombra tu equipo y agrega a tus integrantes para comenzar</p>
+  </div>
+  <div class="setup-card">
+    <label class="field-label" for="teamName">Nombre del equipo</label>
+    <input type="text" id="teamName" class="team-input" placeholder="Ej. Los Strikes" autocomplete="off" maxlength="28">
+    <label class="field-label">Integrantes</label>
+    <div class="add-row">
+      <input type="text" id="memberInput" placeholder="Nombre del integrante" autocomplete="off" maxlength="24">
+      <button id="addMemberBtn">+</button>
+    </div>
+    <ul class="members-list" id="membersList"></ul>
+    <button class="btn btn-primary" id="startGameBtn" disabled>Comenzar a jugar</button>
+  </div>
+  <div class="org-access">
+    <button id="openOrgBtn" class="org-link"><svg class="ic"><use href="#ic-trophy"/></svg> Panel de torneo (organizador)</button>
+  </div>
+  <div class="foot-credit">Saca una carta antes de cada turno &middot; 30&ndash;60s para responder</div>
+</div>
+
+<!-- SCREEN 2: cards -->
+<div class="screen hidden" id="cardScreen">
+  <div class="stage-head">
+    <button class="back-btn" id="backBtn">&larr; Equipo</button>
+    <div class="stage-title" id="cardTeamTitle">Equipo</div>
+    <div class="counter" id="counter">0 / 0</div>
+  </div>
+  <div class="filters" id="filters">
+    <button class="chip on" data-c="all">Todas</button>
+    <button class="chip" data-c="tech">T&eacute;cnica</button>
+    <button class="chip" data-c="project">Proyecto</button>
+    <button class="chip" data-c="personal">Personal</button>
+  </div>
+  <div class="deck" id="deck">
+    <div class="card empty" id="card">
+      <div class="empty-txt"><b>&iquest;List@s?</b>Desliza la carta o toca "Empezar" para la primera pregunta</div>
+    </div>
+  </div>
+  <div class="swipe-hint">Desliza <span>&rarr;</span> o toca el bot&oacute;n para la siguiente</div>
+  <div class="deal-row"><button class="deal-btn" id="dealBtn">Empezar</button></div>
+  <div class="reset-row"><span class="reset-link" id="resetLink">Reiniciar mazo</span></div>
+</div>
+
+<!-- SCREEN 3: organizer panel -->
+<div class="screen hidden" id="orgScreen">
+  <div class="stage-head">
+    <button class="back-btn" id="orgBack">&larr; Inicio</button>
+    <div class="stage-title">Panel <b>Torneo</b></div>
+    <div class="counter" id="orgClock"></div>
+  </div>
+  <div class="org-tabs">
+    <button class="otab on" data-tab="scores">Equipos y puntajes</button>
+    <button class="otab" data-tab="results">Resultados</button>
+    <button class="otab" data-tab="spirit">Spirit</button>
+  </div>
+
+  <div class="otab-panel" id="tab-scores">
+    <p class="org-hint">Crea un equipo, agrega a sus jugadores y captura los 2 juegos de cada quien.</p>
+    <div class="team-add">
+      <input type="text" id="newTeamInput" placeholder="Nombre del equipo nuevo" autocomplete="off" maxlength="28">
+      <button id="addTeamBtn">Crear</button>
+    </div>
+    <div class="team-pills" id="teamPills"></div>
+    <div id="orgScoreArea"></div>
+  </div>
+
+  <div class="otab-panel hidden" id="tab-results">
+    <div class="result-block">
+      <h3 class="result-title"><svg class="ic-title"><use href="#ic-trophy"/></svg> Equipo Campe&oacute;n <span>promedio por jugador</span></h3>
+      <ol class="rank-list" id="rankTeams"></ol>
+    </div>
+    <div class="result-block">
+      <h3 class="result-title"><svg class="ic-title"><use href="#ic-medal"/></svg> Top 3 Individual <span>suma de 2 juegos</span></h3>
+      <ol class="rank-list podium" id="rankIndividual"></ol>
+    </div>
+    <button class="deal-btn org-refresh" id="refreshResults">Calcular resultados</button>
+  </div>
+
+  <div class="otab-panel hidden" id="tab-spirit">
+    <p class="org-hint">Registra los votos del Spirit Award. Cada quien vota por alguien de su propio equipo.</p>
+    <div class="team-pills" id="spiritPills"></div>
+    <div id="spiritArea"></div>
+  </div>
+</div>
+
+<script>
+  // ===================== DATOS =====================
+  const CAT_PREFIX = { tech: "T", project: "R", personal: "P" };
+  const CARDS = {
+    tech: [
+      "¿Conoces algún lenguaje de programación? Si sí, ¿cuál usas más?",
+      "¿Cuál es la herramienta o sistema que más usas en tu día a día?",
+      "¿Te ha tocado que te intenten hackear o que caiga un correo sospechoso? ¿Qué hiciste?",
+      "¿Qué parte de tu trabajo automatizarías mañana mismo si pudieras?",
+      "¿Mac, Windows o Linux? Defiende tu elección.",
+      "¿Cuál es la tecnología o tendencia (IA, nube, etc.) que más te llama la atención?",
+      "¿Qué tarea de tu trabajo te deja más satisfecho al terminarla?",
+      "¿Alguna vez un detalle pequeño te causó un problema enorme? ¿Qué pasó?",
+      "¿Eres más de planear todo antes o de ir resolviendo sobre la marcha?",
+      "¿Qué aplicación o programa sientes que no podrías dejar de usar?",
+      "¿Prefieres una junta rápida o un mensaje escrito para resolver algo?",
+      "Si tuvieras que explicarle tu trabajo a un niño de 8 años, ¿cómo lo harías?",
+      "¿Cuál ha sido el reto técnico más difícil que has enfrentado?",
+      "¿Qué tan segura crees que es tu contraseña personal? Sé honesto.",
+      "¿Cuántas pestañas del navegador tienes abiertas ahorita?",
+      "¿Atajo de teclado favorito que usas todo el tiempo?",
+      "¿Qué página o app abres primero al encender la computadora?",
+      "¿Has roto algo en producción alguna vez? No hay que dar nombres.",
+      "¿Qué parte de la tecnología actual sientes que la gente subestima?",
+      "¿Prefieres trabajar con audífonos o en silencio total?",
+      "¿Cuál es el bug más raro o gracioso que has visto?",
+      "Si pudieras dominar una habilidad técnica al instante, ¿cuál sería?",
+      "¿Modo oscuro o modo claro? ¿Y por qué tan apasionado al respecto?",
+      "¿Qué herramienta nueva aprendiste este año que te sorprendió?"
+    ],
+    project: [
+      "¿En qué área o proyecto de KION trabajas actualmente?",
+      "¿Qué es lo que más te gusta de tu rol?",
+      "¿Con qué equipo o área te gustaría colaborar más y por qué?",
+      "¿Qué fue lo primero que aprendiste al entrar a la empresa?",
+      "¿Qué proceso del trabajo mejorarías si tuvieras una varita mágica?",
+      "¿Qué crees que hace muy bien tu equipo que otros deberían copiar?",
+      "¿Qué consejo le darías a alguien que entra nuevo a tu área?",
+      "¿Cuál ha sido tu momento de mayor orgullo en el trabajo?",
+      "¿Qué te gustaría que se celebrara más seguido en el equipo?",
+      "Si pudieras hacer el trabajo de un colega por un día, ¿cuál elegirías?",
+      "¿Qué es lo que más te sorprendió de cómo funciona KION por dentro?",
+      "¿Cuál es la mejor forma en que un compañero te ha ayudado?",
+      "¿Qué reunión o ritual del equipo te parece el más útil?",
+      "Si pudieras cambiar una cosa de tu día laboral, ¿cuál sería?",
+      "¿Qué proyecto te gustaría que existiera en KION y aún no hay?",
+      "¿Quién del equipo te ha enseñado algo valioso? ¿Qué fue?",
+      "¿Qué logro del equipo te hubiera gustado que se notara más?",
+      "¿Cuál es tu parte favorita de una semana de trabajo normal?",
+      "¿Qué habilidad de un colega admiras y te gustaría tener?",
+      "¿Cómo describirías la cultura del equipo en tres palabras?",
+      "¿Qué es lo mejor de trabajar en un equipo tan diverso como el nuestro?",
+      "Si dieras una charla interna, ¿de qué tema sería?",
+      "¿Qué tradición nueva te gustaría empezar en el equipo?"
+    ],
+    personal: [
+      "Si no trabajaras en tu área actual, ¿a qué te dedicarías?",
+      "¿Café o té para arrancar el día?",
+      "¿Cuál es tu serie, podcast o juego del momento?",
+      "¿Cuál es el mejor lugar al que has viajado?",
+      "Si pudieras tener un superpoder, ¿cuál sería?",
+      "¿Eres de levantarte temprano o de desvelarte?",
+      "¿Qué pasatiempo tienes que sorprendería a tus colegas?",
+      "¿Cuál es tu comida favorita para compartir en grupo?",
+      "Si tuvieras un día libre extra cada semana, ¿qué harías?",
+      "¿Cuál es la mejor recomendación (libro, serie o lugar) que darías?",
+      "¿Qué canción no puede faltar en tu playlist?",
+      "¿Eres bueno en el boliche o vienes por la convivencia?",
+      "¿Dulce o salado para botanear?",
+      "¿Cuál es tu lugar favorito de tu ciudad para llevar a alguien de fuera?",
+      "¿Qué talento escondido tienes?",
+      "¿Playa o montaña para unas vacaciones?",
+      "¿Cuál fue tu primer trabajo o primer dinero que ganaste?",
+      "¿Qué es algo que aprendiste de grande y ojalá hubieras sabido antes?",
+      "Si pudieras cenar con cualquier persona, viva o no, ¿quién sería?",
+      "¿Cuál es tu manera favorita de desconectarte después del trabajo?",
+      "¿Qué coleccionas o coleccionabas de chico?",
+      "¿Cuál es tu antojo culposo de comida?",
+      "¿Qué estación del año es tu favorita y por qué?"
+    ]
+  };
+  const CAT_LABEL = { tech: "Técnica", project: "Proyecto", personal: "Personal" };
+  const CAT_CLASS = { tech: "tech", project: "project", personal: "personal" };
+
+  function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
+  function num(v) { const x = parseInt(v, 10); return isNaN(x) ? 0 : x; }
+
+  // ===================== JUEGO DE CARTAS =====================
+  let teamName = '';
+  let members = [];
+  let activeCat = "all", drawn = [], started = false;
+  let nameQueue = [], lastName = null;
+
+  const memberInput = document.getElementById('memberInput');
+  const membersList = document.getElementById('membersList');
+  const startGameBtn = document.getElementById('startGameBtn');
+  const teamNameInput = document.getElementById('teamName');
+
+  function renderMembers() {
+    membersList.innerHTML = '';
+    if (members.length === 0) {
+      const li = document.createElement('li');
+      li.className = 'members-empty';
+      li.textContent = 'Aún no hay integrantes. Agrega el primero arriba.';
+      membersList.appendChild(li);
+    } else {
+      members.forEach((name, idx) => {
+        const li = document.createElement('li');
+        li.className = 'member-item';
+        li.innerHTML = '<span class="mname"><span class="dot"></span>' + escapeHtml(name) + '</span>';
+        const del = document.createElement('button');
+        del.className = 'del'; del.innerHTML = '&times;'; del.setAttribute('aria-label','Eliminar');
+        del.onclick = () => { members.splice(idx, 1); renderMembers(); };
+        li.appendChild(del);
+        membersList.appendChild(li);
+      });
+    }
+    updateStartBtn();
+  }
+  function updateStartBtn() {
+    startGameBtn.disabled = !(teamNameInput.value.trim() && members.length >= 2);
+  }
+  function addMember() {
+    const name = memberInput.value.trim();
+    if (!name) return;
+    if (members.some(m => m.toLowerCase() === name.toLowerCase())) { memberInput.value=''; return; }
+    members.push(name); memberInput.value=''; memberInput.focus(); renderMembers();
+  }
+  document.getElementById('addMemberBtn').onclick = addMember;
+  memberInput.addEventListener('keydown', e => { if (e.key === 'Enter') addMember(); });
+  teamNameInput.addEventListener('input', updateStartBtn);
+  renderMembers();
+
+  startGameBtn.onclick = () => {
+    teamName = teamNameInput.value.trim();
+    if (!teamName || members.length < 2) return;
+    activeCat = "all"; drawn = []; started = false; nameQueue = []; lastName = null;
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.c === 'all'));
+    document.getElementById('cardTeamTitle').textContent = teamName;
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('cardScreen').classList.remove('hidden');
+    renderStart(); updateCounter(); window.scrollTo(0,0);
+  };
+
+  // rotacion justa de nombres
+  function shuffle(arr) { const a = arr.slice(); for (let i = a.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  function refillQueue() { nameQueue = shuffle(members); if (members.length > 1 && nameQueue[0] === lastName) nameQueue.push(nameQueue.shift()); }
+  function nextName() { if (members.length === 0) return null; if (nameQueue.length === 0) refillQueue(); const n = nameQueue.shift(); lastName = n; return n; }
+
+  function pool() {
+    let list = [];
+    for (const cat of Object.keys(CARDS)) {
+      if (activeCat === 'all' || activeCat === cat) {
+        CARDS[cat].forEach((q, idx) => list.push({ cat, q, id: CAT_PREFIX[cat] + (idx+1) }));
+      }
+    }
+    return list;
+  }
+  function remaining() { return pool().filter(c => !drawn.includes(c.cat + c.id)); }
+  function updateCounter() { const total = pool().length; document.getElementById('counter').textContent = (total - remaining().length) + " / " + total; }
+
+  const deck = document.getElementById('deck');
+  function renderStart() {
+    deck.innerHTML = '<div class="card empty" id="card"><div class="empty-txt"><b>¿List@s?</b>Desliza la carta o toca «Empezar» para la primera pregunta</div></div>';
+    document.getElementById('dealBtn').textContent = "Empezar";
+    document.getElementById('dealBtn').disabled = false;
+  }
+  function renderCard(pick, who) {
+    const card = document.createElement('div');
+    card.className = 'card enter ' + CAT_CLASS[pick.cat];
+    const whoBlock = who
+      ? '<div class="who"><span class="who-label">Responde</span><span class="who-name">' + escapeHtml(who) + '</span></div><div class="who-divider"></div>'
+      : '<span class="cat-tag">' + CAT_LABEL[pick.cat] + '</span>';
+    card.innerHTML = whoBlock + '<div class="q">' + escapeHtml(pick.q) + '</div><div class="card-foot"><span>' + CAT_LABEL[pick.cat] + ' &middot; #' + pick.id + '</span><span>KION TB 2026</span></div>';
+    deck.innerHTML = ''; deck.appendChild(card); attachSwipe(card);
+    document.getElementById('dealBtn').textContent = "Siguiente carta";
+  }
+  function renderEmpty() {
+    started = false;
+    deck.innerHTML = '<div class="card empty"><div class="empty-txt"><b>¡Mazo completo!</b>Ya pasaron por todas las cartas.<br>Reinicia el mazo para repetir.</div></div>';
+    document.getElementById('dealBtn').disabled = true;
+  }
+  function nextCard() {
+    started = true;
+    const left = remaining();
+    if (left.length === 0) { renderEmpty(); return; }
+    const pick = left[Math.floor(Math.random() * left.length)];
+    drawn.push(pick.cat + pick.id);
+    renderCard(pick, nextName()); updateCounter();
+  }
+  function attachSwipe(card) {
+    let startX=0, startY=0, dx=0, dy=0, dragging=false; const handlers=[];
+    function add(t,ty,fn,o){ t.addEventListener(ty,fn,o); handlers.push({t,ty,fn,o}); }
+    function removeAll(){ handlers.forEach(h=>h.t.removeEventListener(h.ty,h.fn,h.o)); handlers.length=0; }
+    function sd(x,y){ dragging=true; startX=x; startY=y; dx=0; dy=0; card.style.transition='none'; card.style.cursor='grabbing'; }
+    function md(x,y){ dx=x-startX; dy=y-startY; card.style.transform='translate('+dx+'px,'+(dy*0.3)+'px) rotate('+(dx/20)+'deg)'; card.style.opacity=String(Math.max(0.4,1-Math.abs(dx)/400)); }
+    function ed(){ if(!dragging)return; dragging=false; card.style.cursor='grab';
+      if(Math.abs(dx)>80 && Math.abs(dx)>Math.abs(dy)*1.5){ const dir=dx>0?1:-1; card.classList.add('swipe-anim'); card.style.transform='translate('+(dir*500)+'px,'+(dy*0.3)+'px) rotate('+(dir*20)+'deg)'; card.style.opacity='0';
+        const onEnd=function(e){ if(e.propertyName==='opacity'){ card.removeEventListener('transitionend',onEnd); removeAll(); nextCard(); } }; card.addEventListener('transitionend',onEnd);
+      } else { card.classList.add('swipe-anim'); card.style.transform=''; card.style.opacity='1'; setTimeout(()=>card.classList.remove('swipe-anim'),400); }
+      dx=0; dy=0;
+    }
+    if (window.PointerEvent) {
+      add(card,'pointerdown',function(e){ if(e.button!==0)return; card.setPointerCapture(e.pointerId); sd(e.clientX,e.clientY); });
+      add(card,'pointermove',function(e){ if(!dragging)return; md(e.clientX,e.clientY); });
+      add(card,'pointerup',function(){ ed(); });
+      add(card,'pointercancel',function(){ ed(); });
+    } else {
+      add(card,'mousedown',function(e){ if(e.button!==0)return; sd(e.clientX,e.clientY); });
+      add(window,'mousemove',function(e){ if(!dragging)return; md(e.clientX,e.clientY); });
+      add(window,'mouseup',function(){ ed(); });
+      add(card,'touchstart',function(e){ sd(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+      add(card,'touchmove',function(e){ if(!dragging)return; if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>10)e.preventDefault(); md(e.touches[0].clientX,e.touches[0].clientY); },{passive:false});
+      add(card,'touchend',function(){ ed(); });
+      add(card,'touchcancel',function(){ ed(); });
+    }
+  }
+  document.getElementById('dealBtn').onclick = nextCard;
+  document.querySelectorAll('#filters .chip').forEach(chip => {
+    chip.onclick = () => {
+      document.querySelectorAll('#filters .chip').forEach(c => c.classList.remove('on'));
+      chip.classList.add('on'); activeCat = chip.dataset.c; updateCounter();
+      document.getElementById('dealBtn').disabled = false;
+      if (!started) renderStart();
+    };
+  });
+  document.getElementById('backBtn').onclick = () => {
+    document.getElementById('cardScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    window.scrollTo(0,0);
+  };
+  document.getElementById('resetLink').onclick = () => {
+    if (!confirm('¿Reiniciar el mazo? Las preguntas podrán repetirse desde cero.')) return;
+    drawn=[]; started=false; nameQueue=[]; lastName=null; renderStart(); updateCounter();
+  };
+
+  // ===================== PANEL DE TORNEO =====================
+  const ORG_KEY = 'kion_tb_2026_torneo';
+  let orgData = loadOrg();        // { teams: [ {name, players:[{name,g1,g2}], spirit:[{name,votes}]} ] }
+  let currentTeamIdx = 0;
+  let spiritTeamIdx = 0;
+
+  function loadOrg() {
+    try { const raw = localStorage.getItem(ORG_KEY); const d = raw ? JSON.parse(raw) : null; if (d && d.teams) return d; } catch(e){}
+    return { teams: [] };
+  }
+  function saveOrg() { try { localStorage.setItem(ORG_KEY, JSON.stringify(orgData)); } catch(e){} }
+  function playerTotal(p) { return num(p.g1) + num(p.g2); }
+  function teamAverage(team) {
+    const played = team.players.filter(p => p.g1 !== '' || p.g2 !== '');
+    if (played.length === 0) return null;
+    return played.reduce((a,p)=>a+playerTotal(p),0) / played.length;
+  }
+
+  document.getElementById('openOrgBtn').onclick = openOrg;
+  function openOrg() {
+    document.getElementById('setupScreen').classList.add('hidden');
+    document.getElementById('orgScreen').classList.remove('hidden');
+    switchTab('scores');
+    window.scrollTo(0,0);
+  }
+  document.getElementById('orgBack').onclick = () => {
+    document.getElementById('orgScreen').classList.add('hidden');
+    document.getElementById('setupScreen').classList.remove('hidden');
+    window.scrollTo(0,0);
+  };
+
+  document.querySelectorAll('.otab').forEach(t => { t.onclick = () => switchTab(t.dataset.tab); });
+  function switchTab(tab) {
+    document.querySelectorAll('.otab').forEach(t => t.classList.toggle('on', t.dataset.tab === tab));
+    document.getElementById('tab-scores').classList.toggle('hidden', tab !== 'scores');
+    document.getElementById('tab-results').classList.toggle('hidden', tab !== 'results');
+    document.getElementById('tab-spirit').classList.toggle('hidden', tab !== 'spirit');
+    if (tab === 'scores') { renderTeamPills(); renderScoreArea(); }
+    if (tab === 'results') computeResults();
+    if (tab === 'spirit') { renderSpiritPills(); renderSpirit(); }
+  }
+
+  // ----- crear / elegir equipos -----
+  document.getElementById('addTeamBtn').onclick = addTeam;
+  document.getElementById('newTeamInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTeam(); });
+  function addTeam() {
+    const inp = document.getElementById('newTeamInput');
+    const name = inp.value.trim();
+    if (!name) return;
+    if (orgData.teams.some(t => t.name.toLowerCase() === name.toLowerCase())) { alert('Ya existe un equipo con ese nombre.'); return; }
+    orgData.teams.push({ name: name, players: [], spirit: [] });
+    currentTeamIdx = orgData.teams.length - 1;
+    saveOrg(); inp.value=''; renderTeamPills(); renderScoreArea();
+  }
+
+  function renderTeamPills() {
+    const wrap = document.getElementById('teamPills');
+    wrap.innerHTML = '';
+    if (orgData.teams.length === 0) { wrap.innerHTML = '<div class="org-empty">Crea tu primer equipo arriba.</div>'; return; }
+    orgData.teams.forEach((t, i) => {
+      const pill = document.createElement('button');
+      pill.className = 'tpill' + (i === currentTeamIdx ? ' on' : '');
+      pill.innerHTML = escapeHtml(t.name) + '<span class="pc">' + t.players.length + '</span><span class="delx" data-del="' + i + '">&times;</span>';
+      pill.onclick = (e) => {
+        if (e.target.dataset.del !== undefined) {
+          if (confirm('¿Eliminar el equipo "' + t.name + '" y sus puntajes?')) {
+            orgData.teams.splice(i, 1);
+            if (currentTeamIdx >= orgData.teams.length) currentTeamIdx = Math.max(0, orgData.teams.length - 1);
+            saveOrg(); renderTeamPills(); renderScoreArea();
+          }
+          return;
+        }
+        currentTeamIdx = i; renderTeamPills(); renderScoreArea();
+      };
+      wrap.appendChild(pill);
+    });
+  }
+
+  function renderScoreArea() {
+    const area = document.getElementById('orgScoreArea');
+    if (orgData.teams.length === 0) { area.innerHTML = ''; return; }
+    const team = orgData.teams[currentTeamIdx];
+    let html = '';
+    html += '<div class="score-add"><input type="text" id="addPlayerInput" placeholder="Agregar jugador a ' + escapeHtml(team.name) + '" autocomplete="off" maxlength="24"><button id="addPlayerBtn">+</button></div>';
+    if (team.players.length === 0) {
+      html += '<div class="org-empty">Sin jugadores aún. Agrégalos arriba.</div>';
+    } else {
+      html += '<table class="ptable"><thead><tr><th>Jugador</th><th>Juego 1</th><th>Juego 2</th><th>Total</th><th></th></tr></thead><tbody>';
+      team.players.forEach((p, idx) => {
+        html += '<tr><td class="pname">' + escapeHtml(p.name) + '</td>' +
+          '<td><input class="g" type="number" inputmode="numeric" data-i="' + idx + '" data-g="g1" value="' + (p.g1===''?'':num(p.g1)) + '" min="0" max="300"></td>' +
+          '<td><input class="g" type="number" inputmode="numeric" data-i="' + idx + '" data-g="g2" value="' + (p.g2===''?'':num(p.g2)) + '" min="0" max="300"></td>' +
+          '<td class="ptot" id="tot-' + idx + '">' + playerTotal(p) + '</td>' +
+          '<td class="pdel"><button class="delp" data-i="' + idx + '">&times;</button></td></tr>';
+      });
+      html += '</tbody></table>';
+      const avg = teamAverage(team);
+      html += '<div class="line-avg"><div class="lbl">Promedio por jugador &middot; ' + escapeHtml(team.name) + '</div><div class="val">' + (avg===null?'--':avg.toFixed(1)) + '</div></div>';
+    }
+    area.innerHTML = html;
+
+    const addInput = document.getElementById('addPlayerInput');
+    const addBtn = document.getElementById('addPlayerBtn');
+    const doAdd = () => {
+      const name = addInput.value.trim();
+      if (!name) return;
+      if (team.players.some(p => p.name.toLowerCase() === name.toLowerCase())) { addInput.value=''; return; }
+      team.players.push({ name: name, g1:'', g2:'' });
+      saveOrg(); renderScoreArea(); renderTeamPills(); document.getElementById('addPlayerInput').focus();
+    };
+    addBtn.onclick = doAdd;
+    addInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+
+    area.querySelectorAll('input.g').forEach(inp => {
+      inp.addEventListener('input', () => {
+        const i = +inp.dataset.i, g = inp.dataset.g;
+        team.players[i][g] = inp.value;
+        document.getElementById('tot-'+i).textContent = playerTotal(team.players[i]);
+        const avgEl = area.querySelector('.line-avg .val');
+        if (avgEl) { const a = teamAverage(team); avgEl.textContent = (a===null?'--':a.toFixed(1)); }
+        saveOrg();
+      });
+    });
+    area.querySelectorAll('.delp').forEach(btn => {
+      btn.onclick = () => { const i=+btn.dataset.i; if(!confirm('¿Eliminar a '+team.players[i].name+'?'))return; team.players.splice(i,1); saveOrg(); renderScoreArea(); renderTeamPills(); };
+    });
+  }
+
+  // ----- resultados -----
+  function computeResults() {
+    const teamRanks = [];
+    orgData.teams.forEach(t => {
+      const avg = teamAverage(t);
+      if (avg === null) return;
+      const played = t.players.filter(p => p.g1 !== '' || p.g2 !== '').length;
+      teamRanks.push({ name: t.name, avg, players: played });
+    });
+    teamRanks.sort((a,b) => b.avg - a.avg);
+    const rt = document.getElementById('rankTeams');
+    rt.innerHTML = '';
+    if (teamRanks.length === 0) rt.innerHTML = '<div class="org-empty">Captura puntajes para ver el ranking.</div>';
+    else teamRanks.forEach(r => { const li=document.createElement('li'); li.innerHTML='<span class="rname">'+escapeHtml(r.name)+' <span class="rsub">&middot; '+r.players+' jug</span></span><span class="rval">'+r.avg.toFixed(1)+'</span>'; rt.appendChild(li); });
+
+    const all = [];
+    orgData.teams.forEach(t => { t.players.forEach(p => { if (p.g1!=='' || p.g2!=='') all.push({ name:p.name, team:t.name, total:playerTotal(p), g1:num(p.g1), g2:num(p.g2) }); }); });
+    all.sort((a,b) => b.total - a.total || Math.max(b.g1,b.g2) - Math.max(a.g1,a.g2));
+    const top = all.slice(0,3);
+    const ri = document.getElementById('rankIndividual');
+    ri.innerHTML = '';
+    if (top.length === 0) ri.innerHTML = '<div class="org-empty">Captura puntajes para ver el Top 3.</div>';
+    else top.forEach(t => { const li=document.createElement('li'); li.innerHTML='<span class="rname">'+escapeHtml(t.name)+' <span class="rsub">&middot; '+escapeHtml(t.team)+'</span></span><span class="rval">'+t.total+'</span>'; ri.appendChild(li); });
+  }
+  document.getElementById('refreshResults').onclick = computeResults;
+
+  // ----- spirit -----
+  function renderSpiritPills() {
+    const wrap = document.getElementById('spiritPills');
+    wrap.innerHTML = '';
+    if (orgData.teams.length === 0) { wrap.innerHTML = '<div class="org-empty">Crea equipos en la pestaña de puntajes primero.</div>'; return; }
+    orgData.teams.forEach((t, i) => {
+      const pill = document.createElement('button');
+      pill.className = 'tpill' + (i === spiritTeamIdx ? ' on' : '');
+      pill.innerHTML = escapeHtml(t.name);
+      pill.onclick = () => { spiritTeamIdx = i; renderSpiritPills(); renderSpirit(); };
+      wrap.appendChild(pill);
+    });
+  }
+  function renderSpirit() {
+    const area = document.getElementById('spiritArea');
+    if (orgData.teams.length === 0) { area.innerHTML = ''; return; }
+    const team = orgData.teams[spiritTeamIdx];
+    let html = '<div class="spirit-add"><select id="spiritSelect">';
+    if (team.players.length === 0) html += '<option value="">Sin jugadores en este equipo</option>';
+    else { html += '<option value="">Elegir a quién sumar voto…</option>'; team.players.forEach(p => { html += '<option value="'+escapeHtml(p.name)+'">'+escapeHtml(p.name)+'</option>'; }); }
+    html += '</select><button id="spiritVoteBtn">+ Voto</button></div>';
+    const sorted = team.spirit.slice().sort((a,b)=>b.votes-a.votes);
+    if (sorted.length === 0) html += '<div class="org-empty">Aún no hay votos en este equipo.</div>';
+    else {
+      const maxV = sorted[0].votes;
+      html += '<ul class="vote-list">';
+      sorted.forEach(s => { html += '<li class="vote-row'+(s.votes===maxV&&maxV>0?' leader':'')+'"><span class="vname">'+(s.votes===maxV&&maxV>0?'<svg class="ic"><use href="#ic-star"/></svg> ':'')+escapeHtml(s.name)+'</span><span class="vcount"><button class="vbtn" data-n="'+escapeHtml(s.name)+'" data-d="-1">&minus;</button><span class="vnum">'+s.votes+'</span><button class="vbtn" data-n="'+escapeHtml(s.name)+'" data-d="1">+</button></span></li>'; });
+      html += '</ul>';
+    }
+    area.innerHTML = html;
+    const vb = document.getElementById('spiritVoteBtn');
+    if (vb) vb.onclick = () => { const sel=document.getElementById('spiritSelect'); if(!sel.value)return; addSpiritVote(team, sel.value, 1); renderSpirit(); };
+    area.querySelectorAll('.vbtn').forEach(b => { b.onclick = () => { addSpiritVote(team, b.dataset.n, +b.dataset.d); renderSpirit(); }; });
+  }
+  function addSpiritVote(team, name, delta) {
+    let e = team.spirit.find(s => s.name === name);
+    if (!e) { e = { name, votes: 0 }; team.spirit.push(e); }
+    e.votes = Math.max(0, e.votes + delta);
+    if (e.votes === 0) team.spirit = team.spirit.filter(s => s.name !== name);
+    saveOrg();
+  }
+
+  function tickClock() { const el=document.getElementById('orgClock'); if(el){ const d=new Date(); el.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); } }
+  tickClock(); setInterval(tickClock, 30000);
+</script>
+</body>
+</html>
